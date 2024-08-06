@@ -152,6 +152,55 @@ app.get("/receivePayments", async (req, res) => {
   }
 });
 
+app.get("/setData", async (req, res) => {
+  const sourceKeys = diamSDK.Keypair.fromSecret(
+    "SBHEM5I5Q7WVMEONYDQZ4X3K45CKNYR2YIQWPCPKGHUMWCY3JTCWJY5F"
+  );
+  var transaction;
+  server.loadAccount(sourceKeys.publicKey()).then((sourceAccount) => {
+    transaction = new diamSDK.TransactionBuilder(sourceAccount, {
+      fee: diamSDK.BASE_FEE,
+      networkPassphrase: "Diamante Testnet",
+    })
+      .addOperation(
+        diamSDK.Operation.manageData({
+          name: "MyDataEntry",
+          value: "Hello, World!",
+        })
+      )
+      .setTimeout(0)
+      .build();
+  });
+  return res.status(200).json({ message: "Data is set successfully!!!" });
+});
+
+app.get("/issueAsset", async (req, res) => {
+  const issuerKeypair = diamSDK.Keypair.random();
+  const astroDollar = new diamSDK.Asset(
+    "astrodollar",
+    issuerKeypair.publicKey()
+  );
+  console.log(astroDollar);
+  const distributorKeypair = diamSDK.Keypair.fromSecret(
+    "SD5ZNFS3AMETKGM42T6XJVXIVWAMRTRGP3VJEDLR6O3LFXRHP7OIMJLF"
+  );
+  const server = new diamSDK.Horizon.Server(
+    "https://diamtestnet.diamcircle.io/"
+  );
+  const account = await server.loadAccount(distributorKeypair.publicKey());
+  // const transaction = new diamSDK.TransactionBuilder(account, {
+  //   fee: diamSDK.BASE_FEE,
+  //   networkPassphrase: diamSDK.Networks.TESTNET,
+  // }).addOperation(
+  //   diamSDK.Operation.changeTrust({
+  //     asset: astroDollar,
+  //     limit: "1000",
+  //     source: distributorKeypair.publicKey(),
+  //   })
+  // );
+  console.log(account);
+});
+
 app.listen(3000, () => {
   console.log("server is running on port 3000");
 });
